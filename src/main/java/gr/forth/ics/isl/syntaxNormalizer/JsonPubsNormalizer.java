@@ -88,7 +88,7 @@ public class JsonPubsNormalizer{
             for(Pair<String,String> pairContents : contentsMap.get(lineIndex)){
                 Element infoElement=doc.createElement(pairContents.getLeft());
                 if(pairContents.getRight()!=null && !pairContents.getRight().isBlank()) {
-                    infoElement.setTextContent(pairContents.getRight());
+                    infoElement.setTextContent(pairContents.getRight().trim());
                 }else{
                     infoElement.setTextContent("");
                 }
@@ -108,6 +108,6 @@ public class JsonPubsNormalizer{
     }
 
     public static void main(String[] args) throws Exception{
-        new JsonPubsNormalizer().syntaxNormalize(new File("sample/input2/"),new File("sample/output"));
+        new JsonPubsNormalizer().syntaxNormalize(new File("sample/input/"),new File("sample/output"));
     }
 }
