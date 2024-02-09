@@ -1,5 +1,15 @@
 package gr.forth.ics.isl.common;
 
+import org.w3c.dom.Document;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.File;
+
 public class Utils {
     public static String parseFrenchColumn(String frenchColumn){
         switch(frenchColumn){
@@ -23,5 +33,14 @@ public class Utils {
             default:
                 return null;    // do not export in XML
         }
+    }
+
+    public static void exportXmlToFile(Document document, File file) throws TransformerException {
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+        StreamResult result = new StreamResult(file);
+        DOMSource source = new DOMSource(document);
+        transformer.transform(source, result);
     }
 }

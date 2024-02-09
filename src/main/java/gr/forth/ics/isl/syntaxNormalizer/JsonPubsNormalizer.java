@@ -14,6 +14,12 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 
 /**
  * Yannis Marketakis (marketak 'at' forth 'dot' ics 'dot' gr)
@@ -22,13 +28,14 @@ import org.apache.logging.log4j.LogManager;
 public class JsonPubsNormalizer{
     private static final Logger log=LogManager.getLogger(JsonPubsNormalizer.class);
 
-    public void syntaxNormalize(File sourceFolder, File targetFolder) throws FileNotFoundException, UnsupportedEncodingException, IOException {
+    public void syntaxNormalize(File sourceFolder, File targetFolder) throws FileNotFoundException, UnsupportedEncodingException, IOException, ParserConfigurationException, TransformerException {
         for(File subFolder : sourceFolder.listFiles()){
             if(!subFolder.isHidden() && new File(subFolder.getAbsolutePath()+"/"+ Resources.INTERVENANTS_FOLDER_NAME).exists()) {
                for(File intervenantsFile : new File(subFolder.getAbsolutePath()+"/"+ Resources.INTERVENANTS_FOLDER_NAME).listFiles()){
                    if(FilenameUtils.getExtension(intervenantsFile.getName()).equalsIgnoreCase(Resources.CSV_EXTENSION)){
-                       Multimap<Integer, Pair<String,String>>contents=parseIntervenants(intervenantsFile);
-                       //export multimap contents to XML file
+                       Multimap<Integer, Pair<String,String>>contentsMap=parseIntervenants(intervenantsFile);
+                       Document doc=xmlifyIntervenants(contentsMap);
+                       this.createFolderHierarchyAndExportXML(intervenantsFile,targetFolder,doc);
                    }
                }
             }
@@ -64,6 +71,35 @@ public class JsonPubsNormalizer{
             lineCounter+=1;
         }
         return contentsMap;
+    }
+
+    public Document xmlifyIntervenants(Multimap<Integer, Pair<String,String>> contentsMap) throws ParserConfigurationException {
+        Document doc= DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        Element rootElement=doc.createElement(Resources.DATAROOT);
+        doc.appendChild(rootElement);
+        for(Integer lineIndex : contentsMap.keySet()){
+            Element entryElement=doc.createElement(Resources.ENTRY);
+            rootElement.appendChild(entryElement);
+            for(Pair<String,String> pairContents : contentsMap.get(lineIndex)){
+                Element infoElement=doc.createElement(pairContents.getLeft());
+                if(pairContents.getRight()!=null && !pairContents.getRight().isBlank()) {
+                    infoElement.setTextContent(pairContents.getRight());
+                }else{
+                    infoElement.setTextContent("");
+                }
+                entryElement.appendChild(infoElement);
+            }
+        }
+        return doc;
+    }
+
+    private void createFolderHierarchyAndExportXML(File inputWorkingDocument, File outputRootFolder,Document doc) throws TransformerException {
+        String outputFolderName=inputWorkingDocument.getParentFile().getParentFile().getName();
+        new File(outputRootFolder.getAbsolutePath()+"/"+outputFolderName).mkdir();
+
+        Utils.exportXmlToFile(doc,new File(outputRootFolder.getAbsolutePath()+"/"
+                                                    +outputFolderName+"/"
+                                                    +FilenameUtils.getBaseName(inputWorkingDocument.getName())+"."+Resources.XML_EXTENSION));
     }
 
     public static void main(String[] args) throws Exception{

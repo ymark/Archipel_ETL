@@ -33,4 +33,11 @@ public class Resources {
     public static final String LABEL_LOCAL_ID="LOCAL_ID";
     public static final String LABEL_NUMBER_OF_DAYS="NUMBER_OF_DAYS";
     public static final String LABEL_ORGANIZATION_OF_MEMBERSHIP="ORGANIZATION_OF_MEMBERSHIP";
+
+    /* common labels */
+    public static final String DATAROOT="dataroot";
+    public static final String ENTRY="entry";
+
+    /* file extensions */
+    public static final String XML_EXTENSION="xml";
 }
