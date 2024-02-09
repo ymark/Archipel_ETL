@@ -1,7 +1,9 @@
 package gr.forth.ics.isl.syntaxNormalizer;
 
 import java.io.*;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
@@ -16,7 +18,6 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -27,6 +28,7 @@ import javax.xml.transform.TransformerException;
 
 public class JsonPubsNormalizer{
     private static final Logger log=LogManager.getLogger(JsonPubsNormalizer.class);
+    private Set<String> unusedIntervenantsColumns=new HashSet<>();
 
     public void syntaxNormalize(File sourceFolder, File targetFolder) throws FileNotFoundException, UnsupportedEncodingException, IOException, ParserConfigurationException, TransformerException {
         for(File subFolder : sourceFolder.listFiles()){
@@ -40,6 +42,7 @@ public class JsonPubsNormalizer{
                }
             }
         }
+        log.info("The following intervenants headers were not mapped/used {}",this.unusedIntervenantsColumns);
     }
 
     private Multimap<Integer, Pair<String,String>> parseIntervenants(File intervenantsCsvFile) throws FileNotFoundException, UnsupportedEncodingException, IOException {
@@ -58,6 +61,8 @@ public class JsonPubsNormalizer{
                     String translatedColumnHeader=Utils.parseFrenchColumn(record.get(i));
                     if(translatedColumnHeader!=null){
                         columnMap.put(i,translatedColumnHeader);
+                    }else{
+                        this.unusedIntervenantsColumns.add(record.get(i));
                     }
                 }
             }
