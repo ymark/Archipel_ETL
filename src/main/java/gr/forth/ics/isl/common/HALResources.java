@@ -21,4 +21,12 @@ public class HALResources {
     public static final String JOIN_SEP="JoinSep";
     public static final String RESPONSE="response";
 
+    /* HAL XML resources */
+    public static final String AUTHOR_ELEMENT="author";
+    public static final String AUTHOR_NAME_ELEMENT="name";
+    public static final String AUTHOR_ID_INTERNAL_ELEMENT="id_internal";
+    public static final String AUTHOR_ID_HAL_ELEMENT="id_hal";
+    public static final String AUTHOR_ORGANIZATION_ELEMENT="organization";
+    public static final String AUTHOR_ORGANIZATIONS_ELEMENT="organizations";
+
 }

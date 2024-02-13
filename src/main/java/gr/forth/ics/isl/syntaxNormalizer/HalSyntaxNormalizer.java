@@ -1,26 +1,33 @@
 package gr.forth.ics.isl.syntaxNormalizer;
 
 import gr.forth.ics.isl.common.HALResources;
+import gr.forth.ics.isl.common.Resources;
+import gr.forth.ics.isl.common.Utils;
 import gr.forth.ics.isl.model.HalAuthor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HalSyntaxNormalizer {
     private static final Logger log= LogManager.getLogger(HalSyntaxNormalizer.class);
 
-    private void harvestData(String collectionName) throws IOException {
+    private void harvestData(String collectionName,String authorsFilename) throws IOException, ParserConfigurationException, TransformerException {
+        List<HalAuthor> authorsCollection=new ArrayList<>();
         log.info("Harvest all resources from HAL under colletion '{}'",collectionName);
         URL url=new URL(HALResources.HAL_REST_API_PREFIX+collectionName+"/"+HALResources.HAL_REST_API_AUTHORS_PARAMETERS);
         log.debug("Hitting URL '{}'",url.toString());
@@ -38,36 +45,48 @@ public class HalSyntaxNormalizer {
         if(!response.isEmpty()) {
             JSONObject jsonResultObject = new JSONObject(response.toString()).getJSONObject(HALResources.RESPONSE);
             JSONArray resultsArray=jsonResultObject.getJSONArray(HALResources.DOCS);
-            for(int i=0;i<resultsArray.length();i++){
-                for(HalAuthor author : this.identifyAuthors(resultsArray.getJSONObject(i))){
-                    System.out.println(author);
+            if(!resultsArray.isEmpty()) {
+                for (int i = 0; i < resultsArray.length(); i++) {
+                    authorsCollection.addAll(this.identifyAuthors(resultsArray.getJSONObject(i)));
                 }
             }
         }else{
             log.error("Received empty result as response");
         }
+        Document document=this.xmlifyAuthors(authorsCollection);
+        Utils.exportXmlToFile(document,new File(authorsFilename));
+    }
+
+    private Document xmlifyAuthors(Collection<HalAuthor> authorsCollection) throws ParserConfigurationException {
+        Document doc= DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        Element rootElement=doc.createElement(Resources.DATAROOT);
+        doc.appendChild(rootElement);
+        for(HalAuthor author : authorsCollection){
+            rootElement.appendChild(author.toXml(doc));
+        }
+        return doc;
     }
 
     Collection<HalAuthor> identifyAuthors(JSONObject authorsJsonObject){
-        Map<Integer,HalAuthor> retMap=new HashMap<>();
+        Map<String,HalAuthor> retMap=new HashMap<>();
         JSONArray authorsCompactForm=authorsJsonObject.getJSONArray(HALResources.AUTH_IDHASPRIMARYSTRUCTURE_FS);
         for(int i=0;i<authorsCompactForm.length();i++){
             String authDetailsStr=authorsCompactForm.getString(i);
             log.debug("parsing author details in compact form '{}'",authDetailsStr);
             HalAuthor author=new HalAuthor();
-            author.setPersonIdInternal(Integer.valueOf(authDetailsStr.substring(0,authDetailsStr.indexOf(HALResources.FACET_SEP)-1).split("-")[0]));
+            author.setPersonIdInternal(authDetailsStr.substring(0,authDetailsStr.indexOf(HALResources.FACET_SEP)-1).split("-")[0]);
             if(retMap.containsKey(author.getPersonIdInternal())){
                 HalAuthor existingAuthor=retMap.get(author.getPersonIdInternal());
-                existingAuthor.addOrganization(Integer.valueOf(authDetailsStr.substring(authDetailsStr.indexOf(HALResources.JOIN_SEP)+HALResources.JOIN_SEP.length()+1,
-                                                               authDetailsStr.lastIndexOf(HALResources.FACET_SEP)-1)),
+                existingAuthor.addOrganization(authDetailsStr.substring(authDetailsStr.indexOf(HALResources.JOIN_SEP)+HALResources.JOIN_SEP.length()+1,
+                                                               authDetailsStr.lastIndexOf(HALResources.FACET_SEP)-1),
                                                 authDetailsStr.substring(authDetailsStr.lastIndexOf(HALResources.FACET_SEP)+HALResources.FACET_SEP.length()+1));
 
             }else{
-                author.setPersonIdHal(Integer.valueOf(authDetailsStr.substring(0,authDetailsStr.indexOf(HALResources.FACET_SEP)-1).split("-")[1]));
+                author.setPersonIdHal(authDetailsStr.substring(0,authDetailsStr.indexOf(HALResources.FACET_SEP)-1).split("-")[1]);
                 author.setAuthorName(authDetailsStr.substring(authDetailsStr.indexOf(HALResources.FACET_SEP)+HALResources.FACET_SEP.length()+1,
                         authDetailsStr.indexOf(HALResources.JOIN_SEP)-1));
-                author.addOrganization(Integer.valueOf(authDetailsStr.substring(authDetailsStr.indexOf(HALResources.JOIN_SEP)+HALResources.JOIN_SEP.length()+1,
-                                                        authDetailsStr.lastIndexOf(HALResources.FACET_SEP)-1)),
+                author.addOrganization(authDetailsStr.substring(authDetailsStr.indexOf(HALResources.JOIN_SEP)+HALResources.JOIN_SEP.length()+1,
+                                                        authDetailsStr.lastIndexOf(HALResources.FACET_SEP)-1),
                                        authDetailsStr.substring(authDetailsStr.lastIndexOf(HALResources.FACET_SEP)+HALResources.FACET_SEP.length()+1));
                 retMap.put(author.getPersonIdInternal(),author);
             }
@@ -75,7 +94,7 @@ public class HalSyntaxNormalizer {
         return retMap.values();
     }
 
-    public static void main(String[] args) throws IOException {
-        new HalSyntaxNormalizer().harvestData(HALResources.INRAP);
+    public static void main(String[] args) throws Exception {
+        new HalSyntaxNormalizer().harvestData(HALResources.INRAP,"hal_inraps_authors.xml");
     }
 }
