@@ -38,6 +38,28 @@ public class JsonExportResources {
     public static final String DATAROOT="dataroot";
     public static final String ENTRY="entry";
 
+    /* json resources */
+    public static final String ADDRESSE_OU_LIEU_DIT="Adresse ou lieu-dit";
+    public static final String CODES="Codes";
+    public static final String COMMUNE="Commune";
+    public static final String DEPARTMENT="Département";
+    public static final String FICHE_SIGNALETIQUE="fiche_signaletique";
+    public static final String LOCALISATION="Localisation";
+    public static final String REGION="Région";
+
+    /* XML resources */
+    public static final String CODES_XML="CODES";
+    public static final String CODE_INFO="CODE_INFO";
+    public static final String CODE_NAME="CODE_NAME";
+    public static final String CODE_VALUE="CODE_VALUE";
+    public static final String LOCALISATION_ADDRESS="LOCALISATION_ADDRESS";
+    public static final String LOCALISATION_COMMUNE="LOCALISATION_COMMUNE";
+    public static final String LOCALISATION_DEPARTMENT="LOCALISATION_DEPARTMENT";
+    public static final String LOCALISATION_REGION="LOCALISATION_REGION";
+    public static final String PUBLICATION_INFO="PUBLICATION_INFO";
+    public static final String PUBLICATION_INRAP_CODE="PUBLICATION_INRAP_CODE";
+
     /* file extensions */
+    public static final String JSON_EXTENSION="json";
     public static final String XML_EXTENSION="xml";
 }

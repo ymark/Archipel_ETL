@@ -1,6 +1,7 @@
 package gr.forth.ics.isl.syntaxNormalizer;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -17,6 +18,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -38,7 +40,7 @@ public class JsonPubsNormalizer{
                    if(FilenameUtils.getExtension(intervenantsFile.getName()).equalsIgnoreCase(JsonExportResources.CSV_EXTENSION)){
                        Multimap<Integer, Pair<String,String>>contentsMap=parseIntervenants(intervenantsFile);
                        JsonExportPublication jsonExportPubl=parsePublicationJson(subFolder);
-                       Document doc=xmlifyIntervenants(contentsMap);
+                       Document doc=xmlifyIntervenants(contentsMap,jsonExportPubl);
                        this.createFolderHierarchyAndExportXML(intervenantsFile,targetFolder,doc);
                    }
                }
@@ -80,10 +82,11 @@ public class JsonPubsNormalizer{
         return contentsMap;
     }
 
-    public Document xmlifyIntervenants(Multimap<Integer, Pair<String,String>> contentsMap) throws ParserConfigurationException {
+    public Document xmlifyIntervenants(Multimap<Integer, Pair<String,String>> contentsMap,JsonExportPublication publicationInfo) throws ParserConfigurationException {
         Document doc= DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
         Element rootElement=doc.createElement(JsonExportResources.DATAROOT);
         doc.appendChild(rootElement);
+        rootElement.appendChild(publicationInfo.toXml(doc));
         for(Integer lineIndex : contentsMap.keySet()){
             Element entryElement=doc.createElement(JsonExportResources.ENTRY);
             rootElement.appendChild(entryElement);
@@ -109,15 +112,51 @@ public class JsonPubsNormalizer{
                                                     +FilenameUtils.getBaseName(inputWorkingDocument.getName())+"."+ JsonExportResources.XML_EXTENSION));
     }
 
-    private JsonExportPublication parsePublicationJson(File publicationFolder){
+    private JsonExportPublication parsePublicationJson(File publicationFolder) throws IOException {
         JsonExportPublication jsonExportPubl=new JsonExportPublication();
         jsonExportPubl.setInrapPublicationCode(publicationFolder.getName());
-        System.out.println(jsonExportPubl);
+        File jsonPublFile=new File(publicationFolder.getAbsolutePath()+"/"+publicationFolder.getName()+"."+JsonExportResources.JSON_EXTENSION);
+        if(jsonPublFile.exists()){
+            BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(jsonPublFile), StandardCharsets.UTF_8));
+            String inputLine;
+            StringBuilder jsonContentsBuilder = new StringBuilder();
+            while ((inputLine = in.readLine()) != null) {
+                jsonContentsBuilder.append(inputLine);
+            }
+            in.close();
 
-        return null;
+            JSONObject jsonObject=new JSONObject(jsonContentsBuilder.toString());
+            if(jsonObject.has(JsonExportResources.FICHE_SIGNALETIQUE)){
+                JSONObject ficheSignalObject=jsonObject.getJSONObject(JsonExportResources.FICHE_SIGNALETIQUE);
+                if(ficheSignalObject.has(JsonExportResources.CODES) && ficheSignalObject.get(JsonExportResources.CODES) instanceof JSONObject){
+                    JSONObject codesObject=ficheSignalObject.getJSONObject(JsonExportResources.CODES);
+                    for(String codeName : codesObject.keySet()){
+                        jsonExportPubl.addCode(codeName,codesObject.getString(codeName));
+                    }
+                }
+                if(ficheSignalObject.has(JsonExportResources.LOCALISATION)){
+                    JSONObject localisationObject=ficheSignalObject.getJSONObject(JsonExportResources.LOCALISATION);
+                    if(localisationObject.has(JsonExportResources.REGION)){
+                        jsonExportPubl.setLocationRegion(localisationObject.getString(JsonExportResources.REGION));
+                    }
+                    if(localisationObject.has(JsonExportResources.DEPARTMENT)){
+                        jsonExportPubl.setLocationDepartment(localisationObject.getString(JsonExportResources.DEPARTMENT));
+                    }
+                    if(localisationObject.has(JsonExportResources.ADDRESSE_OU_LIEU_DIT)){
+                        jsonExportPubl.setLocationAddress(localisationObject.getString(JsonExportResources.ADDRESSE_OU_LIEU_DIT));
+                    }
+                    if(localisationObject.has(JsonExportResources.COMMUNE)){
+                        for(int i=0;i<localisationObject.getJSONArray(JsonExportResources.COMMUNE).length();i++){
+                            jsonExportPubl.addLocationCommune(localisationObject.getJSONArray(JsonExportResources.COMMUNE).getString(i));
+                        }
+                    }
+                }
+            }
+        }
+        return jsonExportPubl;
     }
 
     public static void main(String[] args) throws Exception{
-        new JsonPubsNormalizer().syntaxNormalize(new File("sample/input2/"),new File("sample/output"));
+        new JsonPubsNormalizer().syntaxNormalize(new File("sample/input/"),new File("sample/output"));
     }
 }
