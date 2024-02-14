@@ -7,7 +7,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
-import gr.forth.ics.isl.common.Resources;
+import gr.forth.ics.isl.common.JsonExportPublication;
+import gr.forth.ics.isl.common.JsonExportResources;
 import gr.forth.ics.isl.common.Utils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -32,10 +33,11 @@ public class JsonPubsNormalizer{
 
     public void syntaxNormalize(File sourceFolder, File targetFolder) throws FileNotFoundException, UnsupportedEncodingException, IOException, ParserConfigurationException, TransformerException {
         for(File subFolder : sourceFolder.listFiles()){
-            if(!subFolder.isHidden() && new File(subFolder.getAbsolutePath()+"/"+ Resources.INTERVENANTS_FOLDER_NAME).exists()) {
-               for(File intervenantsFile : new File(subFolder.getAbsolutePath()+"/"+ Resources.INTERVENANTS_FOLDER_NAME).listFiles()){
-                   if(FilenameUtils.getExtension(intervenantsFile.getName()).equalsIgnoreCase(Resources.CSV_EXTENSION)){
+            if(!subFolder.isHidden() && new File(subFolder.getAbsolutePath()+"/"+ JsonExportResources.INTERVENANTS_FOLDER_NAME).exists()) {
+               for(File intervenantsFile : new File(subFolder.getAbsolutePath()+"/"+ JsonExportResources.INTERVENANTS_FOLDER_NAME).listFiles()){
+                   if(FilenameUtils.getExtension(intervenantsFile.getName()).equalsIgnoreCase(JsonExportResources.CSV_EXTENSION)){
                        Multimap<Integer, Pair<String,String>>contentsMap=parseIntervenants(intervenantsFile);
+                       JsonExportPublication jsonExportPubl=parsePublicationJson(subFolder);
                        Document doc=xmlifyIntervenants(contentsMap);
                        this.createFolderHierarchyAndExportXML(intervenantsFile,targetFolder,doc);
                    }
@@ -55,7 +57,7 @@ public class JsonPubsNormalizer{
             if(lineCounter==1){
                 for(int i=0;i< record.size();i++){
                     if(i==0 && record.get(i).isBlank()){
-                        columnMap.put(i,Resources.LABEL_LOCAL_ID);
+                        columnMap.put(i, JsonExportResources.LABEL_LOCAL_ID);
                         continue;
                     }
                     String translatedColumnHeader=Utils.parseFrenchColumn(record.get(i));
@@ -80,10 +82,10 @@ public class JsonPubsNormalizer{
 
     public Document xmlifyIntervenants(Multimap<Integer, Pair<String,String>> contentsMap) throws ParserConfigurationException {
         Document doc= DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-        Element rootElement=doc.createElement(Resources.DATAROOT);
+        Element rootElement=doc.createElement(JsonExportResources.DATAROOT);
         doc.appendChild(rootElement);
         for(Integer lineIndex : contentsMap.keySet()){
-            Element entryElement=doc.createElement(Resources.ENTRY);
+            Element entryElement=doc.createElement(JsonExportResources.ENTRY);
             rootElement.appendChild(entryElement);
             for(Pair<String,String> pairContents : contentsMap.get(lineIndex)){
                 Element infoElement=doc.createElement(pairContents.getLeft());
@@ -104,10 +106,18 @@ public class JsonPubsNormalizer{
 
         Utils.exportXmlToFile(doc,new File(outputRootFolder.getAbsolutePath()+"/"
                                                     +outputFolderName+"/"
-                                                    +FilenameUtils.getBaseName(inputWorkingDocument.getName())+"."+Resources.XML_EXTENSION));
+                                                    +FilenameUtils.getBaseName(inputWorkingDocument.getName())+"."+ JsonExportResources.XML_EXTENSION));
+    }
+
+    private JsonExportPublication parsePublicationJson(File publicationFolder){
+        JsonExportPublication jsonExportPubl=new JsonExportPublication();
+        jsonExportPubl.setInrapPublicationCode(publicationFolder.getName());
+        System.out.println(jsonExportPubl);
+
+        return null;
     }
 
     public static void main(String[] args) throws Exception{
-        new JsonPubsNormalizer().syntaxNormalize(new File("sample/input/"),new File("sample/output"));
+        new JsonPubsNormalizer().syntaxNormalize(new File("sample/input2/"),new File("sample/output"));
     }
 }

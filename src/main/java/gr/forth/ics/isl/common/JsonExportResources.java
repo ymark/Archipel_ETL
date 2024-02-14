@@ -3,7 +3,7 @@ package gr.forth.ics.isl.common;
 /**
  * Yannis Marketakis (marketak 'at' forth 'dot' ics 'dot' gr)
  */
-public class Resources {
+public class JsonExportResources {
     public static final String INTERVENANTS_FOLDER_NAME="intervenants";
     public static final String CSV_EXTENSION="csv";
 

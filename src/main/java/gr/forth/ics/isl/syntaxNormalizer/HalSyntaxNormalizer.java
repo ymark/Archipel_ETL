@@ -1,7 +1,7 @@
 package gr.forth.ics.isl.syntaxNormalizer;
 
 import gr.forth.ics.isl.common.HALResources;
-import gr.forth.ics.isl.common.Resources;
+import gr.forth.ics.isl.common.JsonExportResources;
 import gr.forth.ics.isl.common.Utils;
 import gr.forth.ics.isl.model.HalAuthor;
 import org.apache.logging.log4j.LogManager;
@@ -67,7 +67,7 @@ public class HalSyntaxNormalizer {
 
     private Document xmlifyAuthors(Collection<HalAuthor> authorsCollection) throws ParserConfigurationException {
         Document doc= DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-        Element rootElement=doc.createElement(Resources.DATAROOT);
+        Element rootElement=doc.createElement(JsonExportResources.DATAROOT);
         doc.appendChild(rootElement);
         for(HalAuthor author : authorsCollection){
             rootElement.appendChild(author.toXml(doc));
