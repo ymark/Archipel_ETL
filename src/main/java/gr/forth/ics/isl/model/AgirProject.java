@@ -1,6 +1,8 @@
 package gr.forth.ics.isl.model;
 
 import lombok.Data;
+
+import javax.xml.bind.annotation.XmlElement;
 import java.util.HashSet;
 import java.util.Set;
 

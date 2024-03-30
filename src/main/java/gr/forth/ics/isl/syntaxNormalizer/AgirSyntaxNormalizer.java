@@ -2,6 +2,7 @@ package gr.forth.ics.isl.syntaxNormalizer;
 
 import gr.forth.ics.isl.common.AgirResources;
 import gr.forth.ics.isl.model.AgirProject;
+import gr.forth.ics.isl.model.AgirProjects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
@@ -63,14 +64,15 @@ public class AgirSyntaxNormalizer {
             }
         }
         // Create a JAXB context
-        JAXBContext jaxbContext = JAXBContext.newInstance(ArrayList.class);
+        AgirProjects agirProjects=new AgirProjects(projectsList);
+        JAXBContext jaxbContext = JAXBContext.newInstance(AgirProjects.class);
 
         // Marshal the object to XML
         Marshaller marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
         StringWriter writer = new StringWriter();
-        marshaller.marshal(projectsList, writer);
+        marshaller.marshal(agirProjects, writer);
 
         // Print the XML representation
         System.out.println(writer.toString());
