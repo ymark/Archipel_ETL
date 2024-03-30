@@ -47,20 +47,23 @@ public class AgirSyntaxNormalizer {
                 if(projectObject.has(AgirResources.ANNEE)) {
                     agirProject.setYear(projectObject.getString(AgirResources.ANNEE));
                 }
-                if(projectObject.has(AgirResources.RESPONSABLE)) {
+                if(projectObject.has(AgirResources.RESPONSABLE) && !projectObject.isNull(AgirResources.RESPONSABLE)) {
                     agirProject.setResponsibleId(projectObject.getInt(AgirResources.RESPONSABLE));
                 }
-                if(projectObject.has(AgirResources.DUREE)) {
+                if(projectObject.has(AgirResources.DUREE) && !projectObject.isNull(AgirResources.DUREE)) {
                     agirProject.setDuration(projectObject.getInt(AgirResources.DUREE));
                 }
                 if(projectObject.has(AgirResources.INTITULE)) {
                     agirProject.setTitle(projectObject.getString(AgirResources.INTITULE));
                 }
-                if(projectObject.has(AgirResources.RESUME)) {
-                    agirProject.setResume(projectObject.getString(AgirResources.RESUME));
+//                if(projectObject.has(AgirResources.RESUME)) {
+//                    agirProject.setResume(projectObject.getString(AgirResources.RESUME));
+//                }
+                if(projectObject.has(AgirResources.OPERATIONS_LIEES)){
+                    agirProject.parseAndDefineOperationsList(projectObject.getString(AgirResources.OPERATIONS_LIEES));
                 }
                 projectsList.add(agirProject);
-                break;
+//                break;
             }
         }
         // Create a JAXB context
