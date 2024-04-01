@@ -17,9 +17,11 @@ public class AgirResources {
     public static final String CODE_CO="code_co";
     public static final String CODE_ISO_PAYS_ADMINISTRATIVE="code_iso_pays_administrative";
     public static final String CODE_OPERATION="code_operation";
+    public static final String CODE_ORGANISME="code_organisme";
     public static final String CODE_POSTAL="code_postal";
     public static final String CODE_SOUS_TYPE="code_sous_type";
     public static final String CODE_TYPOLOGIE="code_typologie";
+    public static final String COMMUNE="commune";
     public static final String COMMUNE_ADMINISTRATIVE="commune_administrative";
     public static final String CONTRAT="contrat";
     public static final String CP_ADMINISTRATIVE="cp_administrative";
@@ -31,10 +33,13 @@ public class AgirResources {
     public static final String INSTITUTION_ORGANISATRICE="institution_organisatrice";
     public static final String INTITULE="intitule";
     public static final String LABORATOIRE="laboratoire";
+    public static final String LIBELLE="libelle";
     public static final String MATRICULE="matricule";
     public static final String NOM="nom";
     public static final String OPERATIONS_LIEES="operations_liees";
     public static final String ORGANISATEUR="organisateur";
+    public static final String ORGANISME="organisme";
+    public static final String PAYS_CODE_ISO="pays_code_iso";
     public static final String PERSONNE="personne";
     public static final String PRENOM="prenom";
     public static final String PROJET="projet";
@@ -48,6 +53,7 @@ public class AgirResources {
     public static final String TELEPHONE_PERSONNEL="telephone_personnel";
     public static final String TELEPHONE_PROFESSIONEL="telephone_professionnel";
     public static final String TITRE="titre";
+    public static final String TYPE_ORGANISME="type_organisme";
     public static final String VILLE="ville";
 
 

@@ -2,10 +2,7 @@ package gr.forth.ics.isl.syntaxNormalizer;
 
 import gr.forth.ics.isl.common.AgirResources;
 import gr.forth.ics.isl.common.Utils;
-import gr.forth.ics.isl.model.AgirPerson;
-import gr.forth.ics.isl.model.AgirPersons;
-import gr.forth.ics.isl.model.AgirProject;
-import gr.forth.ics.isl.model.AgirProjects;
+import gr.forth.ics.isl.model.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
@@ -145,6 +142,9 @@ public class AgirSyntaxNormalizer {
                 if(personObject.has(AgirResources.EMAIL) && !personObject.isNull(AgirResources.EMAIL)) {
                     agirPerson.setEmail(personObject.getString(AgirResources.EMAIL));
                 }
+                if(personObject.has(AgirResources.CATEGORIE) && !personObject.isNull(AgirResources.CATEGORIE)) {
+                    agirPerson.setCategory(personObject.getString(AgirResources.CATEGORIE));
+                }
                 if(personObject.has(AgirResources.CONTRAT) && !personObject.isNull(AgirResources.CONTRAT)) {
                     agirPerson.setContrat(personObject.getString(AgirResources.CONTRAT));
                 }
@@ -201,8 +201,63 @@ public class AgirSyntaxNormalizer {
         Utils.writeToXml(writer,sourceXmlFile);
     }
 
+    private static void normalizeOrganisations(File sourceJsonFile, File sourceXmlFile) throws Exception, JAXBException {
+        List<AgirOrganization> list=new ArrayList<>();
+
+        String contents=Utils.getTextualContents(sourceJsonFile);
+        JSONObject completeJson=new JSONObject(contents);
+
+        if(completeJson.has(AgirResources.ROWS)){
+            JSONArray orgsArray=completeJson.getJSONArray(AgirResources.ROWS);
+            log.info("Parsing organizations from Agir. Found {} organization entries",orgsArray.length());
+
+            for(int i=0;i<orgsArray.length();i++){
+                JSONObject orgObject=orgsArray.getJSONObject(i);
+                AgirOrganization agirOrganization=new AgirOrganization();
+
+                if(orgObject.has(AgirResources.CODE_ORGANISME)) {
+                    agirOrganization.setCodeOrganisme(orgObject.getString(AgirResources.CODE_ORGANISME));
+                }
+                if(orgObject.has(AgirResources.LIBELLE) && !orgObject.isNull(AgirResources.LIBELLE)) {
+                    agirOrganization.setLabel(orgObject.getString(AgirResources.LIBELLE));
+                }
+                if(orgObject.has(AgirResources.TYPE_ORGANISME) && !orgObject.isNull(AgirResources.TYPE_ORGANISME)) {
+                    agirOrganization.setOrganizationType(orgObject.getInt(AgirResources.TYPE_ORGANISME));
+                }
+                if(orgObject.has(AgirResources.STATUT) && !orgObject.isNull(AgirResources.STATUT)) {
+                    agirOrganization.setStatut(orgObject.getInt(AgirResources.STATUT));
+                }
+                if(orgObject.has(AgirResources.ADDRESSE1) && !orgObject.isNull(AgirResources.ADDRESSE1)) {
+                    agirOrganization.setAddress1(orgObject.getString(AgirResources.ADDRESSE1));
+                }
+                if(orgObject.has(AgirResources.ADDRESSE2) && !orgObject.isNull(AgirResources.ADDRESSE2)) {
+                    agirOrganization.setAddress2(orgObject.getString(AgirResources.ADDRESSE2));
+                }
+                if(orgObject.has(AgirResources.COMMUNE) && !orgObject.isNull(AgirResources.COMMUNE)) {
+                    agirOrganization.setCommune(orgObject.getString(AgirResources.COMMUNE));
+                }
+                if(orgObject.has(AgirResources.CODE_POSTAL) && !orgObject.isNull(AgirResources.CODE_POSTAL)) {
+                    agirOrganization.setPostalCode(orgObject.getString(AgirResources.CODE_POSTAL));
+                }
+                if(orgObject.has(AgirResources.PAYS_CODE_ISO) && !orgObject.isNull(AgirResources.PAYS_CODE_ISO)) {
+                    agirOrganization.setPaysIsoCode(orgObject.getString(AgirResources.PAYS_CODE_ISO));
+                }
+                list.add(agirOrganization);
+            }
+        }
+
+        AgirOrganizations agirOrgs=new AgirOrganizations(list);
+        JAXBContext jaxbContext = JAXBContext.newInstance(AgirOrganizations.class);
+        Marshaller marshaller = jaxbContext.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+        StringWriter writer = new StringWriter();
+        marshaller.marshal(agirOrgs, writer);
+        Utils.writeToXml(writer,sourceXmlFile);
+    }
+
     public static void main(String[] args) throws Exception {
-//        normalizeProjects(new File("projet.json"),new File("projet.xml"));
+        normalizeProjects(new File("projet.json"),new File("projet.xml"));
         normalizePersons(new File("personne.json"),new File("personne.xml"));
+        normalizeOrganisations(new File("organisme.json"),new File("organisme.xml"));
     }
 }
