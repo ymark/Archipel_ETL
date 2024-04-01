@@ -1,13 +1,13 @@
 package gr.forth.ics.isl.model;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+
+import gr.forth.ics.isl.common.AgirResources;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 /**
  * @author Yannis Marketakis (marketak 'at' ics 'dot' forth 'dot' gr)
  */
-@XmlRootElement(name = "projects")
+@XmlRootElement(name = AgirResources.ROOT)
 public class AgirProjects {
     private List<AgirProject> projectList;
 
@@ -17,7 +17,7 @@ public class AgirProjects {
         this.projectList = projectList;
     }
 
-    @XmlElement(name = "project")
+    @XmlElement(name = AgirResources.PROJET)
     public List<AgirProject> getProjectList() {
         return this.projectList;
     }

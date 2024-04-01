@@ -1,13 +1,15 @@
 package gr.forth.ics.isl.syntaxNormalizer;
 
 import gr.forth.ics.isl.common.AgirResources;
+import gr.forth.ics.isl.common.Utils;
+import gr.forth.ics.isl.model.AgirPerson;
+import gr.forth.ics.isl.model.AgirPersons;
 import gr.forth.ics.isl.model.AgirProject;
 import gr.forth.ics.isl.model.AgirProjects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -25,15 +27,9 @@ public class AgirSyntaxNormalizer {
     private static void normalizeProjects(File sourceJsonFile, File sourceXmlFile) throws Exception, JAXBException {
         List<AgirProject> projectsList=new ArrayList<>();
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(sourceJsonFile), StandardCharsets.UTF_8));
-        String inputLine;
-        StringBuilder jsonContentsBuilder = new StringBuilder();
-        while ((inputLine = in.readLine()) != null) {
-            jsonContentsBuilder.append(inputLine);
-        }
-        in.close();
+        String contents=Utils.getTextualContents(sourceJsonFile);
+        JSONObject completeJson=new JSONObject(contents);
 
-        JSONObject completeJson=new JSONObject(jsonContentsBuilder.toString());
         if(completeJson.has(AgirResources.ROWS)){
             JSONArray projectsArray=completeJson.getJSONArray(AgirResources.ROWS);
             log.info("Parsing projects from Agir. Found {} project entries",projectsArray.length());
@@ -41,8 +37,8 @@ public class AgirSyntaxNormalizer {
             for(int i=0;i<projectsArray.length();i++){
                 JSONObject projectObject=projectsArray.getJSONObject(i);
                 AgirProject agirProject=new AgirProject();
-                if(projectObject.has(AgirResources.PROJECT_ID)) {
-                    agirProject.setProjectId(projectObject.getInt(AgirResources.PROJECT_ID));
+                if(projectObject.has(AgirResources.PROJET_ID)) {
+                    agirProject.setProjectId(projectObject.getInt(AgirResources.PROJET_ID));
                 }
                 if(projectObject.has(AgirResources.CODE_OPERATION)) {
                     agirProject.setCodeOperation(projectObject.getString(AgirResources.CODE_OPERATION));
@@ -104,26 +100,109 @@ public class AgirSyntaxNormalizer {
                 projectsList.add(agirProject);
             }
         }
-        // Create a JAXB context
+
         AgirProjects agirProjects=new AgirProjects(projectsList);
         JAXBContext jaxbContext = JAXBContext.newInstance(AgirProjects.class);
-
-        // Marshal the object to XML
         Marshaller marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-
         StringWriter writer = new StringWriter();
         marshaller.marshal(agirProjects, writer);
+        Utils.writeToXml(writer,sourceXmlFile);
+    }
 
-        OutputStream outputStream=new FileOutputStream("projet.xml");
-        OutputStreamWriter outputStreamWriter=new OutputStreamWriter(outputStream,"UTF-8");
-        outputStreamWriter.write(writer.toString());
-        outputStreamWriter.flush();
-        outputStreamWriter.close();
+    private static void normalizePersons(File sourceJsonFile, File sourceXmlFile) throws Exception, JAXBException {
+        List<AgirPerson> personsList=new ArrayList<>();
 
+        String contents=Utils.getTextualContents(sourceJsonFile);
+        JSONObject completeJson=new JSONObject(contents);
+
+        if(completeJson.has(AgirResources.ROWS)){
+            JSONArray personsArray=completeJson.getJSONArray(AgirResources.ROWS);
+            log.info("Parsing persons from Agir. Found {} person entries",personsArray.length());
+
+            for(int i=0;i<personsArray.length();i++){
+                JSONObject personObject=personsArray.getJSONObject(i);
+                AgirPerson agirPerson=new AgirPerson();
+
+                if(personObject.has(AgirResources.ID)) {
+                    agirPerson.setPersonId(personObject.getInt(AgirResources.ID));
+                }
+                if(personObject.has(AgirResources.MATRICULE) && !personObject.isNull(AgirResources.MATRICULE)) {
+                    agirPerson.setMatricule(personObject.getString(AgirResources.MATRICULE));
+                }
+                if(personObject.has(AgirResources.NOM)) {
+                    agirPerson.setName(personObject.getString(AgirResources.NOM));
+                }
+                if(personObject.has(AgirResources.PRENOM)) {
+                    agirPerson.setSurname(personObject.getString(AgirResources.PRENOM));
+                }
+                if(personObject.has(AgirResources.CIVILITE)) {
+                    agirPerson.setCivility(personObject.getString(AgirResources.CIVILITE));
+                }
+                if(personObject.has(AgirResources.STATUT)) {
+                    agirPerson.setStatut(personObject.getInt(AgirResources.STATUT));
+                }
+                if(personObject.has(AgirResources.EMAIL) && !personObject.isNull(AgirResources.EMAIL)) {
+                    agirPerson.setEmail(personObject.getString(AgirResources.EMAIL));
+                }
+                if(personObject.has(AgirResources.CONTRAT) && !personObject.isNull(AgirResources.CONTRAT)) {
+                    agirPerson.setContrat(personObject.getString(AgirResources.CONTRAT));
+                }
+                if(personObject.has(AgirResources.FILIERE) && !personObject.isNull(AgirResources.FILIERE)) {
+                    agirPerson.setFiliere(personObject.getString(AgirResources.FILIERE));
+                }
+                if(personObject.has(AgirResources.TITRE) && !personObject.isNull(AgirResources.TITRE)) {
+                    agirPerson.setTitre(personObject.getString(AgirResources.TITRE));
+                }
+                if(personObject.has(AgirResources.ADDRESSE_ADMINISTRATIVE1) && !personObject.isNull(AgirResources.ADDRESSE_ADMINISTRATIVE1)) {
+                    agirPerson.setAdministrativeAddr1(personObject.getString(AgirResources.ADDRESSE_ADMINISTRATIVE1));
+                }
+                if(personObject.has(AgirResources.ADDRESSE_ADMINISTRATIVE2) && !personObject.isNull(AgirResources.ADDRESSE_ADMINISTRATIVE2)) {
+                    agirPerson.setAdministrativeAddr2(personObject.getString(AgirResources.ADDRESSE_ADMINISTRATIVE2));
+                }
+                if(personObject.has(AgirResources.CP_ADMINISTRATIVE) && !personObject.isNull(AgirResources.CP_ADMINISTRATIVE)) {
+                    agirPerson.setAdministrativePostalCode(personObject.getString(AgirResources.CP_ADMINISTRATIVE));
+                }
+                if(personObject.has(AgirResources.COMMUNE_ADMINISTRATIVE) && !personObject.isNull(AgirResources.COMMUNE_ADMINISTRATIVE)) {
+                    agirPerson.setAdministrativeCommune(personObject.getString(AgirResources.COMMUNE_ADMINISTRATIVE));
+                }
+                if(personObject.has(AgirResources.CODE_ISO_PAYS_ADMINISTRATIVE) && !personObject.isNull(AgirResources.CODE_ISO_PAYS_ADMINISTRATIVE)) {
+                    agirPerson.setAdministrativeIsoCode(personObject.getString(AgirResources.CODE_ISO_PAYS_ADMINISTRATIVE));
+                }
+                if(personObject.has(AgirResources.TELEPHONE_PERSONNEL) && !personObject.isNull(AgirResources.TELEPHONE_PERSONNEL)) {
+                    agirPerson.setTelephonePersonal(personObject.getString(AgirResources.TELEPHONE_PERSONNEL));
+                }
+                if(personObject.has(AgirResources.TELEPHONE_MOBILE) && !personObject.isNull(AgirResources.TELEPHONE_MOBILE)) {
+                    agirPerson.setTelephoneMobile(personObject.getString(AgirResources.TELEPHONE_MOBILE));
+                }
+                if(personObject.has(AgirResources.TELEPHONE_PROFESSIONEL) && !personObject.isNull(AgirResources.TELEPHONE_PROFESSIONEL)) {
+                    agirPerson.setTelephoneProfessional(personObject.getString(AgirResources.TELEPHONE_PROFESSIONEL));
+                }
+                if(personObject.has(AgirResources.EMPLOYER) && !personObject.isNull(AgirResources.EMPLOYER)) {
+                    agirPerson.setEmployer(personObject.getString(AgirResources.EMPLOYER));
+                }
+                if(personObject.has(AgirResources.CODE_CO) && !personObject.isNull(AgirResources.CODE_CO)) {
+                    agirPerson.setCodeCo(personObject.getString(AgirResources.CODE_CO));
+                }
+                if(personObject.has(AgirResources.LABORATOIRE) && !personObject.isNull(AgirResources.LABORATOIRE)) {
+                    agirPerson.setLab(personObject.getString(AgirResources.LABORATOIRE));
+                }
+
+                personsList.add(agirPerson);
+            }
+        }
+
+        AgirPersons agirPersons=new AgirPersons(personsList);
+        JAXBContext jaxbContext = JAXBContext.newInstance(AgirPersons.class);
+        Marshaller marshaller = jaxbContext.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+        StringWriter writer = new StringWriter();
+        marshaller.marshal(agirPersons, writer);
+        Utils.writeToXml(writer,sourceXmlFile);
     }
 
     public static void main(String[] args) throws Exception {
-        normalizeProjects(new File("projet.json"),new File("projet.xml"));
+//        normalizeProjects(new File("projet.json"),new File("projet.xml"));
+        normalizePersons(new File("personne.json"),new File("personne.xml"));
     }
 }

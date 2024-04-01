@@ -8,7 +8,8 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.File;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 public class Utils {
     public static String parseFrenchColumn(String frenchColumn){
@@ -43,4 +44,24 @@ public class Utils {
         DOMSource source = new DOMSource(document);
         transformer.transform(source, result);
     }
+
+    public static void writeToXml(StringWriter writer, File outputFile) throws IOException {
+        OutputStream outputStream=new FileOutputStream(outputFile);
+        OutputStreamWriter outputStreamWriter=new OutputStreamWriter(outputStream,"UTF-8");
+        outputStreamWriter.write(writer.toString());
+        outputStreamWriter.flush();
+        outputStreamWriter.close();
+    }
+
+    public static String getTextualContents(File file) throws IOException {
+        BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+        String inputLine;
+        StringBuilder contentsBuilder = new StringBuilder();
+        while ((inputLine = in.readLine()) != null) {
+            contentsBuilder.append(inputLine);
+        }
+        in.close();
+        return contentsBuilder.toString();
+    }
+
 }
