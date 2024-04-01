@@ -41,6 +41,9 @@ public class AgirSyntaxNormalizer {
             for(int i=0;i<projectsArray.length();i++){
                 JSONObject projectObject=projectsArray.getJSONObject(i);
                 AgirProject agirProject=new AgirProject();
+                if(projectObject.has(AgirResources.PROJECT_ID)) {
+                    agirProject.setProjectId(projectObject.getInt(AgirResources.PROJECT_ID));
+                }
                 if(projectObject.has(AgirResources.CODE_OPERATION)) {
                     agirProject.setCodeOperation(projectObject.getString(AgirResources.CODE_OPERATION));
                 }
@@ -56,14 +59,49 @@ public class AgirSyntaxNormalizer {
                 if(projectObject.has(AgirResources.INTITULE)) {
                     agirProject.setTitle(projectObject.getString(AgirResources.INTITULE));
                 }
-//                if(projectObject.has(AgirResources.RESUME)) {
-//                    agirProject.setResume(projectObject.getString(AgirResources.RESUME));
-//                }
-                if(projectObject.has(AgirResources.OPERATIONS_LIEES)){
+                if(projectObject.has(AgirResources.RESUME) && !projectObject.isNull(AgirResources.RESUME)) {
+                    agirProject.setResume(projectObject.getString(AgirResources.RESUME));
+                }
+                if(projectObject.has(AgirResources.CODE_SOUS_TYPE) && !projectObject.isNull(AgirResources.CODE_SOUS_TYPE)) {
+                    agirProject.setSubType(projectObject.getString(AgirResources.CODE_SOUS_TYPE));
+                }
+                if(projectObject.has(AgirResources.AXE_RECHERHCE_INRAP) && !projectObject.isNull(AgirResources.AXE_RECHERHCE_INRAP)) {
+                    agirProject.setResearchAxisInrap(projectObject.getString(AgirResources.AXE_RECHERHCE_INRAP));
+                }
+                if(projectObject.has(AgirResources.BUDGET_ACCORDE) && !projectObject.isNull(AgirResources.BUDGET_ACCORDE)) {
+                    agirProject.setBudget(projectObject.getFloat(AgirResources.BUDGET_ACCORDE));
+                }
+                if(projectObject.has(AgirResources.CODE_CO) && !projectObject.isNull(AgirResources.CODE_CO)) {
+                    agirProject.setCode(projectObject.getString(AgirResources.CODE_CO));
+                }
+                if(projectObject.has(AgirResources.CODE_TYPOLOGIE) && !projectObject.isNull(AgirResources.CODE_TYPOLOGIE)) {
+                    agirProject.setCodeTypology(projectObject.getString(AgirResources.CODE_TYPOLOGIE));
+                }
+                if(projectObject.has(AgirResources.STATUT) && !projectObject.isNull(AgirResources.STATUT)) {
+                    agirProject.setStatus(projectObject.getInt(AgirResources.STATUT));
+                }
+                if(projectObject.has(AgirResources.ADDRESSE1) && !projectObject.isNull(AgirResources.ADDRESSE1)) {
+                    agirProject.setAddresse1(projectObject.getString(AgirResources.ADDRESSE1));
+                }
+                if(projectObject.has(AgirResources.ADDRESSE2) && !projectObject.isNull(AgirResources.ADDRESSE2)) {
+                    agirProject.setAddresse2(projectObject.getString(AgirResources.ADDRESSE2));
+                }
+                if(projectObject.has(AgirResources.CODE_POSTAL) && !projectObject.isNull(AgirResources.CODE_POSTAL)) {
+                    agirProject.setPostalCode(projectObject.getString(AgirResources.CODE_POSTAL));
+                }
+                if(projectObject.has(AgirResources.VILLE) && !projectObject.isNull(AgirResources.VILLE)) {
+                    agirProject.setCity(projectObject.getString(AgirResources.VILLE));
+                }
+                if(projectObject.has(AgirResources.ORGANISATEUR) && !projectObject.isNull(AgirResources.ORGANISATEUR)) {
+                    agirProject.setOrganizer(projectObject.getString(AgirResources.ORGANISATEUR));
+                }
+                if(projectObject.has(AgirResources.INSTITUTION_ORGANISATRICE) && !projectObject.isNull(AgirResources.INSTITUTION_ORGANISATRICE)) {
+                    agirProject.setOrganizerInstitution(projectObject.getString(AgirResources.INSTITUTION_ORGANISATRICE));
+                }
+                if(projectObject.has(AgirResources.OPERATIONS_LIEES) && !projectObject.isNull(AgirResources.OPERATIONS_LIEES)){
                     agirProject.parseAndDefineOperationsList(projectObject.getString(AgirResources.OPERATIONS_LIEES));
                 }
                 projectsList.add(agirProject);
-//                break;
             }
         }
         // Create a JAXB context
@@ -77,8 +115,11 @@ public class AgirSyntaxNormalizer {
         StringWriter writer = new StringWriter();
         marshaller.marshal(agirProjects, writer);
 
-        // Print the XML representation
-        System.out.println(writer.toString());
+        OutputStream outputStream=new FileOutputStream("projet.xml");
+        OutputStreamWriter outputStreamWriter=new OutputStreamWriter(outputStream,"UTF-8");
+        outputStreamWriter.write(writer.toString());
+        outputStreamWriter.flush();
+        outputStreamWriter.close();
 
     }
 
