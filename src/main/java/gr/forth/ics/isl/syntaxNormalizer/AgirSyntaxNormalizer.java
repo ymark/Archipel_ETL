@@ -3,15 +3,24 @@ package gr.forth.ics.isl.syntaxNormalizer;
 import gr.forth.ics.isl.common.AgirResources;
 import gr.forth.ics.isl.common.Utils;
 import gr.forth.ics.isl.model.*;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -255,9 +264,69 @@ public class AgirSyntaxNormalizer {
         Utils.writeToXml(writer,sourceXmlFile);
     }
 
+    private static void xmlifyGeneric(File sourceJsonFile, File targetXmlFile) throws Exception, JAXBException {
+        System.out.println("Transforming "+sourceJsonFile.getAbsolutePath());
+        String contents=Utils.getTextualContents(sourceJsonFile);
+        JSONObject completeJson=new JSONObject(contents);
+
+        List<String> elementNames=new ArrayList<>();
+        StringBuilder xmlBuilder=new StringBuilder();
+        xmlBuilder.append("<root>");
+        if(completeJson.has(AgirResources.ROWS)) {
+            JSONArray itemsArray = completeJson.getJSONArray(AgirResources.ROWS);
+            for (int i = 0; i < itemsArray.length(); i++) {
+                JSONObject itemObject = itemsArray.getJSONObject(i);
+                xmlBuilder.append(toXmlObject(FilenameUtils.getBaseName(sourceJsonFile.getAbsolutePath()),itemObject));
+            }
+        }
+        xmlBuilder.append("</root>");
+        writeStringToXmlFile(xmlBuilder.toString(),targetXmlFile);
+    }
+
+    public static void writeStringToXmlFile(String xml, File xmlFile) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(xml)));
+
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+        StreamResult result = new StreamResult(xmlFile);
+        transformer.transform(new DOMSource(document), result);
+    }
+
+    private static String toXmlObject(String elementName, JSONObject itemObject){
+        StringBuilder xmlBuilder=new StringBuilder();
+        xmlBuilder.append("<").append(elementName).append(">");
+        for(String key : itemObject.keySet()){
+            if(itemObject.isNull(key)){
+                xmlBuilder.append("<").append(key).append("/>");
+            }else if(key.equalsIgnoreCase("detail_mission")){
+                continue;
+            }
+            else{
+                Object value=itemObject.get(key);
+                    xmlBuilder.append("<").append(key).append(">").append(value.toString().replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")).append("</").append(key).append(">");
+            }
+        }
+        xmlBuilder.append("</").append(elementName).append(">");
+        return xmlBuilder.toString();
+    }
+
+    private static void xmlifyGenericFromFolder(File fromFolder, File toFolder) throws Exception {
+        for(File fromFile : fromFolder.listFiles()){
+            xmlifyGeneric(fromFile,new File(toFolder.getAbsolutePath()+"/"+FilenameUtils.getBaseName(fromFile.getAbsolutePath())+".xml"));
+        }
+    }
+
     public static void main(String[] args) throws Exception {
-        normalizeProjects(new File("projet.json"),new File("projet.xml"));
-        normalizePersons(new File("personne.json"),new File("personne.xml"));
-        normalizeOrganisations(new File("organisme.json"),new File("organisme.xml"));
+//        normalizeProjects(new File("projet.json"),new File("projet.xml"));
+//        normalizePersons(new File("personne.json"),new File("personne.xml"));
+//        normalizeOrganisations(new File("organisme.json"),new File("organisme.xml"));
+//        xmlifyGeneric(new File("in/ref_code_operation.json"),new File("out/ref_code_operation.xml"));
+        xmlifyGenericFromFolder(new File("in"),new File("out"));
+
     }
 }
